@@ -1,6 +1,6 @@
 # Arcade Framework
 
-This C++ framework let you add your own **games** and **libraries**.
+This C++ framework lets you add your own **games** and **libraries**.
 
 For instance, you can create a Tetris game compatible with the project *(see documentation in* doc/*)* and then play it on all the availables graphical libraries.
 
