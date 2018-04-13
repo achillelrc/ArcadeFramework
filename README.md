@@ -18,21 +18,21 @@ The **libraries** are only porting of existing graphic libs (e.g. SDL2, GTK, QT)
 
 **Nibbler/Snake** (on SDL2 here)
 
-![alt text](https://image.ibb.co/fakHP7/nibb.png)
+<img src="https://image.ibb.co/fakHP7/nibb.png" width="320" height="240" />
 
 **Pacman** (on SFML lib here)
 
-![alt text](https://image.ibb.co/cF6fcS/pac.png)
+<img src="https://image.ibb.co/cF6fcS/pac.png" width="320" height="240" />
 
 ## Graphic libraries
 
 **SDL2 library**
 
-![alt text](https://image.ibb.co/k9wDxS/sdlenu.png)
+<img src="https://image.ibb.co/k9wDxS/sdlenu.png" width="320" height="240" />
 
 **SFML Library**
 
-![alt text](https://image.ibb.co/e5WfcS/sfml.png)
+<img src="https://image.ibb.co/e5WfcS/sfml.png" width="320" height="240" />
 
 **Ncurse Library** (desactived for mac os compatibility issue but you can uncomment lines in Makefile to make it work)
 
