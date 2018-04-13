@@ -34,7 +34,8 @@ The **libraries** are only porting of existing graphic libs (e.g. SDL2, GTK, QT)
 
 <img src="https://image.ibb.co/e5WfcS/sfml.png" width="480" height="360" />
 
-**Ncurse Library** (desactived for mac os compatibility issue but you can uncomment lines in Makefile to make it work)
+**Ncurse Library**
+(desactived for mac os compatibility issue but you can uncomment lines in Makefile to make it work)
 
 ## Keys
  There are a bunch of keys that are working through all games :
