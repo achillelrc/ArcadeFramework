@@ -9,7 +9,7 @@ The **libraries** are only porting of existing graphic libs (e.g. SDL2, GTK, QT)
 ## Usage
 
 - Clone the repo.
-- Install SFML & SDL2 if you want to test the actual libraries
+- Install SFML & SDL2 if you want to test the current libraries
 - Open a terminal and execute *make* command to compile the sources
 - Start with the desired library with the following command
 ``./arcade ./lib/lib_arcade_libname.so ``
