@@ -15,17 +15,23 @@ The **libraries** are only porting of existing graphic libs (e.g. SDL2, GTK, QT)
 ``./arcade ./lib/lib_arcade_libname.so ``
 
 ## Games
+
 **Nibbler/Snake** (on SDL2 here)
+
 ![alt text](https://image.ibb.co/fakHP7/nibb.png)
 
 **Pacman** (on SFML lib here)
+
 ![alt text](https://image.ibb.co/cF6fcS/pac.png)
 
 ## Graphic libraries
+
 **SDL2 library**
+
 ![alt text](https://image.ibb.co/k9wDxS/sdlenu.png)
 
 **SFML Library**
+
 ![alt text](https://image.ibb.co/e5WfcS/sfml.png)
 
 ## Keys
