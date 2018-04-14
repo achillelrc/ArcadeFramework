@@ -2,7 +2,7 @@
 
 This C++ framework lets you add your own **games** and **libraries**.
 
-For instance, you can create a Tetris game compatible with the project *(see documentation in* doc/*)* and then play it on all the availables graphical libraries.
+For instance, you can create a Tetris game compatible with the project *(see documentation in* [doc/](../blob/master/doc/MyArcade.pdf)*)* and then play it on all the availables graphical libraries.
 
 The **libraries** are only porting of existing graphic libs (e.g. SDL2, GTK, QT) re-designed to work the same way.
 
