@@ -7,6 +7,7 @@
 
 #include "PacMan.hpp"
 #include "Paths.hpp"
+#include "Error.hpp"
 #include <string.h>
 #include <unistd.h>
 #include <fstream>
@@ -110,13 +111,21 @@ void PacMan::initMap()
 	std::fstream file;
 	std::string fileName;
 
-	_gameMap.clear();
-	fileName = RESOURCES_PATH + MAP_PATH + "pacmanmap";
-	file.open(fileName);
-	while (getline(file, line)) {
-		_gameMap.push_back(line);
+	try {
+		_gameMap.clear();
+		fileName = RESOURCES_PATH + MAP_PATH + "pacmanmap";
+		file.open(fileName);
+		while (getline(file, line)) {
+			_gameMap.push_back(line);
+		}
+		if (_gameMap.empty())
+			throw Handler("PacMan", "cannot load map");
+		file.close();
 	}
-	file.close();
+	catch (Handler &e) {
+		std::cerr << e.what();
+		exit(84);
+	}
 }
 
 void PacMan::moveUp()
@@ -188,6 +197,16 @@ bool isSuperPacGum(int x, int y)
 	if (x == 1 && y == 1)
 		return (1);
 	return (0);
+}
+
+bool PacMan::canWalkThroughLock(int x, int y)
+{
+	if (x == _objMap[1].x && y == _objMap[1].y) {
+		if (_objMap[1].value == ' ')
+			return (1);
+		return (0);
+	}
+	return (1);
 }
 
 void PacMan::loadPacGums()
@@ -262,6 +281,7 @@ void PacMan::eatPacGum()
 		&& round(_pacManPos.first) == round(_pacGums[i].x)
 		&& _pacGums[i].value == '*') {
 			_pacGums[i].value = ' ';
+			_score += 1000;
 			_godModeStart = clock();
 			_godMode = 1;
 			_ghostSpeed = 0.05;
@@ -484,9 +504,8 @@ int PacMan::ghostTick(int i, objPos_t &ghost, PacMan::PacManDirection_e dir)
 	y -= _ghostSpeed;
 	else if (dir == DOWN_DIR && isWalkable(_gameMap[ceil(y + _ghostSpeed)][round(x)]))
 	y += _ghostSpeed;
-	if (dir == LEFT_DIR && isWalkable(_gameMap[round(y)][floor(x - _ghostSpeed)])) {
+	if (dir == LEFT_DIR && isWalkable(_gameMap[round(y)][floor(x - _ghostSpeed)]))
 		x -= _ghostSpeed;
-	}
 	else if (dir == RIGHT_DIR && isWalkable(_gameMap[round(y)][ceil(x + _ghostSpeed)]))
 	x += _ghostSpeed;
 	if (oldPos[ghost.name].first == x)
@@ -564,11 +583,9 @@ void PacMan::pacManTick()
 	else if (_pacManDir == DOWN_DIR && isWalkable(_gameMap[ceil(y + 0.1)][round(x)]))
 	y += 0.1;
 	else if (_pacManDir == DOWN_DIR || _pacManDir == UP_DIR)
-	_pacManDir = _playerDir;
-
-	if (_pacManDir == LEFT_DIR && isWalkable(_gameMap[round(y)][floor(x - 0.1)])) {
+		_pacManDir = _playerDir;
+	if (_pacManDir == LEFT_DIR && isWalkable(_gameMap[round(y)][floor(x - 0.1)]))
 		x -= 0.1;
-	}
 	else if (_pacManDir == RIGHT_DIR && isWalkable(_gameMap[round(y)][ceil(x + 0.1)]))
 	x += 0.1;
 	else if (_pacManDir == LEFT_DIR || _pacManDir == RIGHT_DIR)
@@ -608,6 +625,7 @@ void PacMan::init()
 	initMap();
 	this->_objMap.clear();
 	this->_objMap.push_back({9, 11, 'c', "PacMan"});
+	this->_objMap.push_back({9, 8, 'L', "Lock"});
 	_state = 1;
 	_score = 0;
 	_lifes = 3;
@@ -802,7 +820,6 @@ std::pair<double, double> PacMan::getMapSize() const
 
 int PacMan::runGame()
 {
-	this->_graphicModule->updateDisplay(this);
 	this->_state = 1;
 	this->_graphicModule->printText("Ready !");
 	myClock = clock();

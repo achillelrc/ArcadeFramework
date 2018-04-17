@@ -306,7 +306,7 @@ void printRules(IGameModule *currentGame, std::vector<std::string> gameMap)
 						"Score :", std::to_string(currentGame->getScore())};
 	while (i < _rules.size()) {
 		j = 0;
-		move((LINES / 2) - (gameMap.size() / 2) + i, gameMap[0].size() * 4);
+		move((LINES / 2) - (gameMap.size() / 2) + i, COLS - 20);
 		while (j < _rules[i].size()) {
 			addch(_rules[i][j]);
 			j++;

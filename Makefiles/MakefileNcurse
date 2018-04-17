@@ -7,7 +7,7 @@
 
 CC		= 	g++ -g
 
-CPPFLAGS 	+=	-fPIC -I./include/ -Wall -Werror -Wextra  -std=c++11
+CPPFLAGS 	+=	-fPIC -I./include/ -Wall -Werror -Wextra -std=c++11
 
 LDFLAGS		=	-lncurses -lmenu
 

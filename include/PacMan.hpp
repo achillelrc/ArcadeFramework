@@ -62,6 +62,7 @@ public:
 	bool checkForWin();
 	int detectGhostCollide();
 	void initGhosts();
+	bool canWalkThroughLock(int x, int y);
 	PacManDirection_e calcDir();
 	std::vector<PacMan::PacManDirection_e> calcAllDir(objPos_t, PacMan::PacManDirection_e);
 	void moveGhosts();

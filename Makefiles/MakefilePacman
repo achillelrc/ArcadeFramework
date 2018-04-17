@@ -5,7 +5,7 @@
 ## Makefile
 ##
 
-CC		= 	g++ -g 
+CC		= 	g++ -g
 
 CPPFLAGS 	+=	-fPIC -I./include/ -Wall -Werror -Wextra -std=c++11
 
@@ -14,6 +14,7 @@ LDFLAGS		=
 NAME		=	lib_arcade_pacman.so
 
 SRCS		=	src/games/PacMan.cpp	\
+			src/error/Error.cpp
 
 OBJS		=	$(SRCS:.cpp=.o)
 

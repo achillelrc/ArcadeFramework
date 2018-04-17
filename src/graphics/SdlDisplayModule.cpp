@@ -43,25 +43,33 @@ void SdlDisplayModule::genSprite(std::string name, const char *path, const char 
 
 	if (msg) {
 		TTF_Font *font = TTF_OpenFont(path, 35);
-		if (!font)
-		throw Handler("SDL2 lib", "ttf file load exception");
+		if (!font) {
+			this->destroy();
+			throw Handler("SDL2 lib", "ttf file load exception");
+		}
 		SDL_Color tmpCol;
 		tmpCol.r = 0xFF;
 		tmpCol.g = 0xFF;
 		tmpCol.b = 0xFF;
 		surf = TTF_RenderText_Solid(font, msg, tmpCol);
-		if (!surf)
-		throw Handler("SDL2 lib", "rendering exception");
+		if (!surf) {
+			this->destroy();
+			throw Handler("SDL2 lib", "rendering exception");
+		}
 	}
 	else {
 		surf = IMG_Load(path);
-		if (!surf)
-		throw Handler("SDL2 lib", "surface file load exception");
+		if (!surf) {
+			this->destroy();
+			throw Handler("SDL2 lib", "surface file load exception");
+		}
 		SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 0, 0xFF, 0xFF));
 	}
 	boxes[name] = SDL_CreateTextureFromSurface(render, surf);
-	if (!boxes[name])
-	throw Handler("SDL2 lib", "rendering exception");
+	if (!boxes[name]) {
+		this->destroy();
+		throw Handler("SDL2 lib", "rendering exception");
+	}
 	SDL_FreeSurface(surf);
 }
 
@@ -128,8 +136,10 @@ void SdlDisplayModule::printObjs(IGameModule *data, ITilemap *tmap)
 		tile = objMap[x].value;
 		zone = new SDL_Rect{(int)(xx + objMap[x].x * tmap->getScale()), (int)(objMap[x].y * tmap->getScale()), tmap->getScale(), tmap->getScale()};
 		clip = new SDL_Rect{posmap[tile].first + 1, posmap[tile].second + 1, tmap->getScale() - 1, tmap->getScale() - 2};
-		if (SDL_RenderCopy(render, boxes["map"], clip, zone))
+		if (SDL_RenderCopy(render, boxes["map"], clip, zone)) {
+			this->destroy();
 			throw Handler("SDL2 lib", "objs rendering exception");
+		}
 	}
 }
 
@@ -144,11 +154,13 @@ void SdlDisplayModule::printMap(IGameModule *data, ITilemap *tmap)
 	for (int y = 0; y < data->getMapSize().second; ++y) {
 		for (int x = 0; x < data->getMapSize().first; ++x) {
 			if (posmap.find(gamemap[y][x]) == posmap.end())
-				continue;
+			continue;
 			zone = new SDL_Rect{xx + x * tmap->getScale(), y * tmap->getScale(), tmap->getScale(), tmap->getScale()};
 			clip = new SDL_Rect{posmap[gamemap[y][x]].first + 1, posmap[gamemap[y][x]].second + 1, tmap->getScale() - 1, tmap->getScale() - 1};
-			if (SDL_RenderCopyEx(render, boxes["map"], clip, zone, 0.0, NULL, SDL_FLIP_NONE))
+			if (SDL_RenderCopyEx(render, boxes["map"], clip, zone, 0.0, NULL, SDL_FLIP_NONE)) {
+				this->destroy();
 				throw Handler("SDL2 lib", "map rendering exception");
+			}
 		}
 	}
 }
@@ -211,8 +223,6 @@ void SdlDisplayModule::updateDisplay(IGameModule *currentGame)
 		genSprite("map", tmap->getTilemapPath().c_str(), NULL);
 		tilep = tmap->getTilemapPath().c_str();
 	}
-
-
 	SDL_SetRenderDrawColor(render, 0x00, 0x00, 0x00, 0x00);
 	SDL_RenderClear(render);
 	SDL_RenderCopy(render, boxes["back"], NULL, NULL);
@@ -270,13 +280,13 @@ void SdlDisplayModule::renderMenu()
 	SDL_QueryTexture(boxes["play"], NULL, NULL, &w, &h);
 	box = {640 / 2 - w / 2, 375, w, h};
 	if (x >= 640 / 2 - w / 2 && x <= 640 / 2 + w / 2 && y >= 375 && y <= 375 + h)
-		box = {640 / 2 - w / 2, 373, w, h};
+	box = {640 / 2 - w / 2, 373, w, h};
 	SDL_RenderCopy(render, boxes["play"], NULL, &box);
 
 	SDL_QueryTexture(boxes["score"], NULL, NULL, &w, &h);
 	box = {640 / 2 - w / 2, 430, w, h};
 	if (x >= 640 / 2 - w / 2 && x <= 640 / 2 + w / 2 && y >= 430 && y <= 430 + h)
-		box = {640 / 2 - w / 2, 432, w, h};
+	box = {640 / 2 - w / 2, 432, w, h};
 	SDL_RenderCopy(render, boxes["score"], NULL, &box);
 }
 
@@ -288,39 +298,40 @@ int SdlDisplayModule::checkButtons(SDL_Event *ev)
 	SDL_GetMouseState(&x, &y);
 	for (int i = 0; i < 5; ++i) {
 		if (boxes.find(std::to_string(i)) != boxes.end()) {
-		SDL_QueryTexture(boxes[std::to_string(i)], NULL, NULL, &w, &h);
-		if (x < 640 / 4 - w / 3 || x > 640 / 4 - w / 3 + w / 3 * 2 ||
-		y < 175 + (i * 20) || y > 175 + (i * 20) + h / 3 * 2 || (!x && !y))
-			box = {640 / 4 - w / 3, 175 + (i * 20), w / 3 * 2, h / 3 * 2};
-		else {
-			box = {640 / 4 - w / 3 - 1, 175 + (i * 20) - 1, w / 3 * 2, h / 3 * 2};
-			if (ev && ev->type == SDL_MOUSEBUTTONUP)
+			SDL_QueryTexture(boxes[std::to_string(i)], NULL, NULL, &w, &h);
+			if (x < 640 / 4 - w / 3 || x > 640 / 4 - w / 3 + w / 3 * 2 || y < 175 + (i * 20) || y > 175 + (i * 20) + h / 3 * 2 || (!x && !y)) {
+				box = {640 / 4 - w / 3, 175 + (i * 20), w / 3 * 2, h / 3 * 2};
+			}
+			else {
+				box = {640 / 4 - w / 3 - 1, 175 + (i * 20) - 1, w / 3 * 2, h / 3 * 2};
+				if (ev && ev->type == SDL_MOUSEBUTTONUP)
 				this->_coreProgram->setGraphicLib(this->_graphicLibName.at(i));
-			SDL_RenderCopy(render, boxes[std::to_string(i)], NULL, &box);
-		}
-		if (!ev)
+				SDL_RenderCopy(render, boxes[std::to_string(i)], NULL, &box);
+			}
+			if (!ev)
 			SDL_RenderCopy(render, boxes[std::to_string(i)], NULL, &box);
 		}
 		if (boxes.find(std::to_string(i + 100)) != boxes.end()) {
-		SDL_QueryTexture(boxes[std::to_string(i + 100)], NULL, NULL, &w, &h);
-		if (x < 640 / 4 * 3 - w / 3 || x > 640 / 4 * 3 + w / 3 ||
-		y < 175 + (i * 20) || y > 175 + (i * 20) + h / 3 * 2 || (!x && !y))
-			box = {640 / 4 * 3 - w / 3, 175 + (i * 20), w / 3 * 2, h / 3 * 2};
-		else {
-			box = {640 / 4 * 3 - w / 3 - 1, 175 + (i * 20) - 1, w / 3 * 2, h / 3 * 2};
-			if (ev && ev->type == SDL_MOUSEBUTTONUP) {
-				if (this->gameId != -1 && this->gameId != i) {
-					std::string str = this->_gameLibName.at(this->gameId);
-					genSprite(std::to_string(this->gameId + 100), SDL_FONT, str.c_str());
-				}
-				this->gameId = i;
-				std::string tmp = "* " + this->_gameLibName.at(i);
-				this->_coreProgram->setGameLib(this->_gameLibName.at(i));
-				genSprite(std::to_string(i + 100), SDL_FONT, tmp.c_str());
+			SDL_QueryTexture(boxes[std::to_string(i + 100)], NULL, NULL, &w, &h);
+			if (x < 640 / 4 * 3 - w / 3 || x > 640 / 4 * 3 + w / 3
+				|| y < 175 + (i * 20) || y > 175 + (i * 20) + h / 3 * 2 || (!x && !y)) {
+				box = {640 / 4 * 3 - w / 3, 175 + (i * 20), w / 3 * 2, h / 3 * 2};
 			}
-			SDL_RenderCopy(render, boxes[std::to_string(i + 100)], NULL, &box);
-		}
-		if (!ev)
+			else {
+				box = {640 / 4 * 3 - w / 3 - 1, 175 + (i * 20) - 1, w / 3 * 2, h / 3 * 2};
+				if (ev && ev->type == SDL_MOUSEBUTTONUP) {
+					if (this->gameId != -1 && this->gameId != i) {
+						std::string str = this->_gameLibName.at(this->gameId);
+						genSprite(std::to_string(this->gameId + 100), SDL_FONT, str.c_str());
+					}
+					this->gameId = i;
+					std::string tmp = "* " + this->_gameLibName.at(i);
+					this->_coreProgram->setGameLib(this->_gameLibName.at(i));
+					genSprite(std::to_string(i + 100), SDL_FONT, tmp.c_str());
+				}
+				SDL_RenderCopy(render, boxes[std::to_string(i + 100)], NULL, &box);
+			}
+			if (!ev)
 			SDL_RenderCopy(render, boxes[std::to_string(i + 100)], NULL, &box);
 		}
 	}
@@ -331,7 +342,7 @@ int SdlDisplayModule::checkButtons(SDL_Event *ev)
 			return (0);
 		}
 		if (this->gameId < 0)
-			this->_coreProgram->setGameLib(this->_gameLibName.at(++this->gameId));
+		this->_coreProgram->setGameLib(this->_gameLibName.at(++this->gameId));
 		SDL_StopTextInput();
 		return (1);
 	}
@@ -342,12 +353,12 @@ int SdlDisplayModule::checkButtons(SDL_Event *ev)
 			return (0);
 		}
 		if (this->gameId < 0)
-			this->_coreProgram->setGameLib(this->_gameLibName.at(++this->gameId));
+		this->_coreProgram->setGameLib(this->_gameLibName.at(++this->gameId));
 		this->_coreProgram->pushScores();
 
 		genSprite(std::to_string(4242), SDL_FONT, this->_gameLibName.at(gameId).c_str());
 		for (size_t u = 0; u < this->_scores.size() && u < 10; ++u)
-			genSprite(std::to_string((u + 1) * -1), SDL_FONT, this->_scores.at(u).c_str());
+		genSprite(std::to_string((u + 1) * -1), SDL_FONT, this->_scores.at(u).c_str());
 		menuMode = 1;
 	}
 	return (0);
@@ -372,11 +383,11 @@ void SdlDisplayModule::showScore()
 	SDL_QueryTexture(boxes["scorex2"], NULL, NULL, &w, &h);
 	box = {640 / 2 - w / 2, 30, w, h};
 	if (x >= 640 / 2 - w / 2 && x <= 640 / 2 + w / 2 && y >= 30 && y <= 30 + h)
-		box = {640 / 2 - w / 2, 28, w, h};
+	box = {640 / 2 - w / 2, 28, w, h};
 	SDL_RenderCopy(render, boxes["scorex2"], NULL, &box);
 	while (SDL_PollEvent(&ev)) {
 		if (ev.type == SDL_QUIT)
-			exit(0);
+		exit(0);
 		if (ev.type == SDL_MOUSEBUTTONUP && x >= 640 / 2 - w / 2 && x <= 640 / 2 + w / 2 && y >= 28 && y <= 28 + h) {
 			menuMode = 0;
 		}
@@ -386,7 +397,6 @@ void SdlDisplayModule::showScore()
 
 int SdlDisplayModule::displayMenu()
 {
-	//printf("MENU\n");
 	SDL_SetRenderDrawColor(render, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(render);
 	SDL_Event ev;
@@ -394,7 +404,7 @@ int SdlDisplayModule::displayMenu()
 	std::string cmp = _userName;
 
 	if (!SDL_IsTextInputActive())
-		SDL_StartTextInput();
+	SDL_StartTextInput();
 	SDL_RenderCopy(render, boxes["back"], NULL, NULL);
 	if (menuMode == 1) {
 		this->showScore();
@@ -406,7 +416,7 @@ int SdlDisplayModule::displayMenu()
 			exit(0);
 		}
 		if (checkButtons(&ev))
-			return (1);
+		return (1);
 		if (ev.type == SDL_KEYDOWN) {
 			if (ev.key.keysym.sym == SDLK_BACKSPACE && _userName.length() > 0)
 			_userName.pop_back();
@@ -448,7 +458,7 @@ void SdlDisplayModule::initMenu()
 
 	this->_coreProgram->pushGraphicName();
 	for(std::size_t j = 0; j < this->_graphicLibName.size() ; ++j)
-		genSprite(std::to_string(j), SDL_FONT, this->_graphicLibName.at(j).c_str());
+	genSprite(std::to_string(j), SDL_FONT, this->_graphicLibName.at(j).c_str());
 	this->_coreProgram->pushGameName();
 	for(std::size_t j = 0; j < this->_gameLibName.size() ; ++j)
 	genSprite(std::to_string(j + 100), SDL_FONT, this->_gameLibName.at(j).c_str());
@@ -475,13 +485,12 @@ std::string SdlDisplayModule::getKey()
 
 	if (SDL_PollEvent(&ev)) {
 		if (ev.type == SDL_QUIT)
-			exit(0);
+		exit(0);
 		if (ev.type == SDL_KEYDOWN) {
 			buf = (SDL_GetKeyName(ev.key.keysym.sym));
 		}
 	}
 	std::transform(buf.begin(), buf.end(), buf.begin(), ::tolower);
-	//	std::cout << buf << "\n";
 	this->keyAction(buf);
 	return (buf);
 }

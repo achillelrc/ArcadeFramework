@@ -27,8 +27,7 @@ core: $(OBJS)
 graphicals:
 	mkdir -p ./lib
 	make -f Makefiles/MakefileSdl
-	make -f Makefiles/MakefileSFML
-	#make -f Makefiles/MakefileNcurse
+	make -f Makefiles/MakefileSFML	#make -f Makefiles/MakefileNcurse
 
 games:
 	mkdir -p ./games
@@ -40,16 +39,15 @@ clean:
 	make -f Makefiles/MakefilePacman clean
 	make -f Makefiles/MakefileNibbler clean
 	make -f Makefiles/MakefileSdl clean
-	make -f Makefiles/MakefileSFML clean
-	#make -f Makefiles/MakefileNcurse clean
+	make -f Makefiles/MakefileSFML clean	#make -f Makefiles/MakefileNcurse clean
 
 fclean: clean
 	$(RM) $(NAME)
 	make -f Makefiles/MakefilePacman fclean
 	make -f Makefiles/MakefileNibbler fclean
 	make -f Makefiles/MakefileSdl fclean
-	make -f Makefiles/MakefileSFML fclean
-	#make -f Makefiles/MakefileNcurse fclean
+	make -f Makefiles/MakefileSFML fclean	#make -f Makefiles/MakefileNcurse fclean
+
 
 re:	fclean all
 

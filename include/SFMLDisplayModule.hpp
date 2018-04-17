@@ -18,7 +18,7 @@
 class SFMLSprite {
 public:
 	~SFMLSprite() = default;
-	
+
 	void setPosition(double x, double y)
 	{
 		_x = x;
@@ -74,20 +74,27 @@ public:
 		this->_gameMap = gameMap;
 	}
 
-	void updateObj(std::vector<objPos_t> objMap, std::map<char, std::pair<int, int>> tilemap, sf::Vector2u tileSize, unsigned int width) {
+	void updateObj(IGameModule *game, sf::RenderWindow *myWindow, sf::Vector2u tileSize)
+	{
 		unsigned int i = 0;
-		while (i < objMap.size()) {
-			sf::Vertex* quad = &m_vertices[((int)objMap[i].x + (int)objMap[i].y * width) * 4];
-			quad[0].position = sf::Vector2f(objMap[i].x * tileSize.x, objMap[i].y * tileSize.y);
-			quad[1].position = sf::Vector2f((objMap[i].x + 1) * tileSize.x, objMap[i].y * tileSize.y);
-			quad[2].position = sf::Vector2f((objMap[i].x + 1) * tileSize.x, (objMap[i].y + 1) * tileSize.y);
-			quad[3].position = sf::Vector2f(objMap[i].x * tileSize.x, (objMap[i].y + 1) * tileSize.y);
+		std::vector<objPos_t> objMap = game->getObjPos();
+		std::map<char, std::pair<int, int>> tilemap = game->getTilemap()->getTilemap();
+		int offset = myWindow->getSize().x / 2 - (game->getMapSize().second * game->getTilemap()->getScale()) / 2;
+		char tileValue;
 
-			char tileValue = objMap[i].value;
+		while (i < objMap.size()) {
+			sf::VertexArray quad(sf::Quads, 4);
+
+			tileValue = objMap[i].value;
+			quad[0].position = sf::Vector2f(objMap[i].x * tileSize.x + offset, objMap[i].y * tileSize.y);
+			quad[1].position = sf::Vector2f((objMap[i].x + 1) * tileSize.x + offset, objMap[i].y * tileSize.y);
+			quad[2].position = sf::Vector2f((objMap[i].x + 1) * tileSize.x + offset, (objMap[i].y + 1) * tileSize.y);
+			quad[3].position = sf::Vector2f(objMap[i].x * tileSize.x + offset, (objMap[i].y + 1) * tileSize.y);
 			quad[0].texCoords = sf::Vector2f(tilemap[tileValue].first, tilemap[tileValue].second);
 			quad[1].texCoords = sf::Vector2f(tilemap[tileValue].first + tileSize.x, tilemap[tileValue].second);
 			quad[2].texCoords = sf::Vector2f(tilemap[tileValue].first + tileSize.x,  tilemap[tileValue].second + tileSize.y);
 			quad[3].texCoords = sf::Vector2f(tilemap[tileValue].first, tilemap[tileValue].second + tileSize.y);
+			myWindow->draw(quad, &m_tileset);
 			i++;
 		}
 	}
@@ -98,25 +105,24 @@ public:
 		sf::Color offcolor;
 		unsigned int width = currentGame->getMapSize().first;
 		unsigned int height = currentGame->getMapSize().second;
+		std::map<char, std::pair<int, int>> tilemap = currentGame->getTilemap()->getTilemap();
 
-		img.loadFromFile(tileset);
+		if (!img.loadFromFile(tileset)) {
+			return false;
+		}
 		offcolor = img.getPixel(0, 0);
 		img.createMaskFromColor(offcolor);
 		if (!m_tileset.loadFromImage(img)) {
-			throw Handler("SFML Lib", "cannot load tilemap " + tileset);
+			return false;
 		}
 		m_tileset.setSmooth(1);
 		m_vertices.setPrimitiveType(sf::Quads);
 		m_vertices.resize(width * height * 4);
-
-		std::map<char, std::pair<int, int>> tilemap = currentGame->getTilemap()->getTilemap();
-
 		for (unsigned int i = 0; i < width; ++i)
 		for (unsigned int j = 0; j < height; ++j)
 		{
 			char tileValue = _gameMap[j][i];
 			sf::Vertex* quad = &m_vertices[(i + j * width) * 4];
-
 			quad[0].position = sf::Vector2f(i * tileSize.x, j * tileSize.y);
 			quad[1].position = sf::Vector2f((i + 1) * tileSize.x, j * tileSize.y);
 			quad[2].position = sf::Vector2f((i + 1) * tileSize.x, (j + 1) * tileSize.y);

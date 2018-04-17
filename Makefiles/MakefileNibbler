@@ -5,15 +5,16 @@
 ## Makefile
 ##
 
-CC		= 	g++ -g 
+CC		= 	g++ -g
 
-CPPFLAGS 	+=	-fPIC -I./include/ -Wall -Werror -Wextra  -std=c++11
+CPPFLAGS 	+=	-fPIC -I./include/ -Wall -Werror -Wextra -std=c++11
 
 LDFLAGS		=
 
 NAME		=	lib_arcade_nibbler.so
 
 SRCS		=	src/games/Nibbler.cpp	\
+			src/error/Error.cpp
 
 OBJS		=	$(SRCS:.cpp=.o)
 

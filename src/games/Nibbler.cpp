@@ -6,6 +6,7 @@
 //
 
 #include "Nibbler.hpp"
+#include "Error.hpp"
 
 extern "C" {
 	void __attribute__((constructor)) calledFirst();
@@ -36,7 +37,7 @@ NibblerTilemap::NibblerTilemap() : _path(RESOURCES_PATH + std::string("tilesnak.
 	_tilemap['_'] = std::make_pair(148, 274);
 	_tilemap['|'] = std::make_pair(127, 274);
 	_tilemap['d'] = std::make_pair(169, 211);
-	_tilemap['9'] = std::make_pair(127, 253);
+	_tilemap['q'] = std::make_pair(127, 253);
 	_tilemap['p'] = std::make_pair(169, 253);
 	_tilemap['T'] = std::make_pair(148, 211);
 	_tilemap['t'] = std::make_pair(148, 253);
@@ -80,15 +81,23 @@ void Nibbler::initMap(const std::string &map)
 	std::fstream file;
 	int cnt = 0;
 
-	_gameMap.clear();
-	file.open(RESOURCES_PATH + MAP_PATH + map);
-	while (getline(file, line)) {
-		for (size_t i = 0; i < line.size(); ++i)
-			cnt = (line.at(i) == ' ') ? cnt + 1 : cnt;
-		_gameMap.push_back(line);
+	try {
+		_gameMap.clear();
+		file.open(RESOURCES_PATH + MAP_PATH + map);
+		while (getline(file, line)) {
+			for (size_t i = 0; i < line.size(); ++i)
+				cnt = (line.at(i) == ' ') ? cnt + 1 : cnt;
+			_gameMap.push_back(line);
+		}
+		_maxCells = cnt;
+		file.close();
+		if (_gameMap.empty())
+			throw Handler("Nibbler", "cannot load map");
 	}
-	_maxCells = cnt;
-	file.close();
+	catch (Handler &e) {
+		std::cerr << e.what();
+		exit(84);
+	}
 }
 
 Nibbler::NibblerDir_e Nibbler::calcDir()

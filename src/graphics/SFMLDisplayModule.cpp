@@ -150,38 +150,49 @@ std::string SFMLDisplayModule::detectKey()
 
 SFMLDisplayModule::SFMLDisplayModule() : _name("SFML Lib"), _userName("Michel"), _myWindow(new sf::RenderWindow), _font(new sf::Font)
 {
-	background = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-background.png", 0, 0);
-	title = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-title.png", 0, 0);
-	changeLib = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-change-lib.png", 0, 0);
-	chooseGame = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-choose-a-game.png", 0, 0);
-	play = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-play.png", 0, 0);
-	scoreboard = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-scoreboard.png", 0, 0);
+	try {
+		background = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-background.png", 0, 0);
+		title = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-title.png", 0, 0);
+		changeLib = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-change-lib.png", 0, 0);
+		chooseGame = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-choose-a-game.png", 0, 0);
+		play = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-play.png", 0, 0);
+		scoreboard = new SFMLSprite(RESOURCES_PATH + SFML_PATH + "sfml-scoreboard.png", 0, 0);
 
-	title->setPosition(title->midX(640), changeLib->midY(480) - 200);
-	changeLib->setPosition(changeLib->midX(640) - 150, changeLib->midY(480) - 100);
-	chooseGame->setPosition(chooseGame->midX(640) + 150, chooseGame->midY(480) - 100);
-	play->setPosition(play->midX(640), play->midY(480) + 150);
-	scoreboard->setPosition(scoreboard->midX(640), scoreboard->midY(480) + 178);
+		title->setPosition(title->midX(640), changeLib->midY(480) - 200);
+		changeLib->setPosition(changeLib->midX(640) - 150, changeLib->midY(480) - 100);
+		chooseGame->setPosition(chooseGame->midX(640) + 150, chooseGame->midY(480) - 100);
+		play->setPosition(play->midX(640), play->midY(480) + 150);
+		scoreboard->setPosition(scoreboard->midX(640), scoreboard->midY(480) + 178);
+	}
+	catch (Handler &e) {
+		std::cerr << e.what();
+		exit(84);
+	}
 }
 
 SFMLDisplayModule::~SFMLDisplayModule()
 {
-	this->destroy();
+	//this->destroy();
 }
 
 void SFMLDisplayModule::init(ICoreProgram *coreProgram)
 {
+	sf::Event event;
+
 	this->_coreProgram = coreProgram;
 	if (!_font->loadFromFile(RESOURCES_PATH + FONT_PATH + "ARCADE_R.TTF"))
 	{
+		this->destroy();
 		throw Handler("SFML", "error while loading font");
 	}
 	this->_coreProgram->pushGameName();
 	if (_gameLibName.empty()) {
+		this->destroy();
 		throw Handler("SFML", "no games to play");
 	}
 	this->_coreProgram->pushGraphicName();
 	if (_graphicLibName.empty()) {
+		this->destroy();
 		throw Handler("SFML", "no graphics modules");
 	}
 	this->_SMFLGraphicLibName = createSFMLTextArray(_graphicLibName, 12);
@@ -189,7 +200,6 @@ void SFMLDisplayModule::init(ICoreProgram *coreProgram)
 	_myWindow->create(sf::VideoMode(640, 480), "Arcade", sf::Style::Close);
 	_myWindow->setVerticalSyncEnabled(true);
 	_myWindow->setFramerateLimit(60);
-	sf::Event event;
 	while (_myWindow->pollEvent(event));
 	enterYourName = new sf::Text;
 	enterYourName->setPosition(20, 450);
@@ -227,16 +237,27 @@ std::string SFMLDisplayModule::getMenuAction(std::string str)
 
 void SFMLDisplayModule::updateDisplay(IGameModule *currentGame)
 {
-	SFMLTileMap map;
+	static SFMLTileMap *map = NULL;
 	ITilemap *tileMap = currentGame->getTilemap();
+	static std::vector<std::string> gameMap;
+	static std::string tilemapPath;
 
-	map.setGameMap(currentGame->getGameMap());
-	map.setPosition(_myWindow->getSize().x / 2 - (currentGame->getMapSize().second * tileMap->getScale()) / 2, 0);
-	if (!map.load(tileMap->getTilemapPath(), sf::Vector2u(tileMap->getScale(), tileMap->getScale()), currentGame))
-		return;
-	map.updateObj(currentGame->getObjPos(), currentGame->getTilemap()->getTilemap(), sf::Vector2u(tileMap->getScale(), tileMap->getScale()), currentGame->getMapSize().first);
 	_myWindow->clear(sf::Color::Black);
-	_myWindow->draw(map);
+	if (gameMap != currentGame->getGameMap() || tilemapPath != currentGame->getTilemap()->getTilemapPath()) {
+		if (map)
+			delete map;
+		map = new SFMLTileMap;
+		map->setGameMap(currentGame->getGameMap());
+		map->setPosition(_myWindow->getSize().x / 2 - (currentGame->getMapSize().second * tileMap->getScale()) / 2, 0);
+		if (!map->load(tileMap->getTilemapPath(), sf::Vector2u(tileMap->getScale(), tileMap->getScale()), currentGame)) {
+			this->destroy();
+			throw Handler("SFML", "cannot load tileset " + tileMap->getTilemapPath());
+		}
+		tilemapPath = currentGame->getTilemap()->getTilemapPath();
+		gameMap = currentGame->getGameMap();
+	}
+	map->updateObj(currentGame, this->_myWindow, sf::Vector2u(tileMap->getScale(), tileMap->getScale()));
+	_myWindow->draw(*map);
 	_rules = createSFMLTextArray({NEXT_LIB_HINT, PREV_LIB_HINT, NEXT_GAME_HINT, PREV_GAME_HINT, RESTART_GAME_HINT, EXIT_HINT, MENU_HINT}, 11);
 	std::vector<sf::Text *> gameName = createSFMLTextArray({"Current Game :", currentGame->getName()}, 11);
 	std::vector<sf::Text *> score = createSFMLTextArray({"Score : " + std::to_string(currentGame->getScore())}, 14);
@@ -248,7 +269,9 @@ void SFMLDisplayModule::updateDisplay(IGameModule *currentGame)
 
 void SFMLDisplayModule::destroy()
 {
-	_myWindow->close();
+	if (_myWindow && _myWindow->isOpen()) {
+		_myWindow->close();
+	}
 }
 
 std::string SFMLDisplayModule::getKey()
@@ -311,7 +334,7 @@ std::vector<sf::Text *> SFMLDisplayModule::createSFMLTextArray(std::vector<std::
 	std::unique_ptr<std::vector<sf::Text *>> myArray(new std::vector<sf::Text *>);
 	unsigned int i = 0;
 
-	while (i < text.size()) {
+	while (i <= 10 && i < text.size()) {
 		sf::Text *myText = new sf::Text;
 		myText->setFont(*this->_font);
 		myText->setCharacterSize(size);
@@ -391,7 +414,7 @@ void SFMLDisplayModule::detectUserTextInput(sf::Event event)
 	{
 		if (event.text.unicode == 8) {
 			if (!str.empty())
-				str.pop_back();
+			str.pop_back();
 			_SFMLUsername->setString(str);
 		}
 		else if (event.text.unicode > 31 && event.text.unicode < 128)
@@ -400,7 +423,7 @@ void SFMLDisplayModule::detectUserTextInput(sf::Event event)
 			_SFMLUsername->setString(str);
 		}
 		if (str != "")
-			this->setUserName(str);
+		this->setUserName(str);
 	}
 
 }
@@ -501,10 +524,10 @@ int SFMLDisplayModule::displayMenu()
 		}
 		drawEverything();
 		if (detectClickMenu(sf::Mouse::getPosition(*_myWindow)))
-			return (1);
+		return (1);
 		_myWindow->display();
 		if (!menuRun)
-			break;
+		break;
 	}
 	return (0);
 }
@@ -516,7 +539,7 @@ void SFMLDisplayModule::printText(std::string inputText, long timeout)
 	text.setFont(*_font);
 	text.setCharacterSize(20);
 	text.setPosition((_myWindow->getSize().x - (inputText.size()
-			* text.getCharacterSize()))/ 2, _myWindow->getSize().y / 2);
+	* text.getCharacterSize()))/ 2, _myWindow->getSize().y / 2);
 	text.setString(inputText);
 	_myWindow->clear(sf::Color::Black);
 	_myWindow->draw(text);
