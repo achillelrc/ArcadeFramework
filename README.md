@@ -18,7 +18,7 @@ The **libraries** are only porting of existing graphic libs (e.g. SDL2, GTK, QT)
 
 **Nibbler/Snake** (on SDL2 here)
 
-<img src="https://image.ibb.co/fakHP7/nibb.png" width="480" height="360" />
+<img src="https://image.ibb.co/fuWfK7/yay.png" width="480" height="360" />
 
 **Pacman** (on SFML lib here)
 
