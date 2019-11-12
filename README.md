@@ -36,7 +36,7 @@ The **libraries** are only porting of existing graphic libs (e.g. SDL2, GTK, QT)
 
 **Ncurse Library**
 
-(desactived for mac os compatibility issue but you can uncomment lines in Makefile to make it work)
+(desactivated for mac os compatibility issue but you can uncomment lines in Makefile to make it work)
 
 ## Keys
  There are a bunch of keys that are working through all games :
